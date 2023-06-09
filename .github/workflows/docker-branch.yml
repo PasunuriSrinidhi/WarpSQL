@@ -17,12 +17,12 @@ on:
 
 env:
   ORG: samagragovernance
-  TS_VERSION: main
+  TS_VERSION: ${{ github.event.inputs.branch }}
   PLATFORM: linux/amd64
 
 jobs:
 
-  # Build ubuntu TimescaleDB images for both TSL and OSS code.
+  # Build Ubuntu TimescaleDB images for both TSL and OSS code.
   timescaledb:
 
     name: Docker ${{ github.event.inputs.branch }} PG${{ matrix.pg }}
@@ -33,7 +33,7 @@ jobs:
         pg: [15]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
 
     - name: Set up Docker Buildx
       id: buildx
@@ -42,12 +42,11 @@ jobs:
     - name: Linux available buildx platforms
       run: echo ${{ steps.buildx.outputs.platforms }}
 
-    - name: Linux available buildx platforms
-      run: echo ${TS_VERSION}
-
     - name: Login to DockerHub Registry
       run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin
 
-    - name: Build and push nightly Docker image for Postgres
+    - name: Build and push Docker image for Postgres
       run: make multi ORG=$ORG PG_VER=pg${{ matrix.pg }} TS_VERSION="${TS_VERSION}" PLATFORM=$PLATFORM TAG="-t samagragovernance/postgres:branch-${TS_VERSION}-pg${{ matrix.pg }}"
 
+    - name: Push Docker image to DockerHub
+      run: docker push samagragovernance/postgres:branch-${TS_VERSION}-pg${{ matrix.pg }}
