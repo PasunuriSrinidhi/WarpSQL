@@ -1,6 +1,6 @@
 #!/bin/bash
 
-create_sql=`mktemp`
+create_sql=$(mktemp)
 
 # Checks to support bitnami image with same scripts so they stay in sync
 if [ ! -z "${BITNAMI_APP_NAME:-}" ]; then
@@ -32,7 +32,7 @@ if [ "${TIMESCALEDB_TELEMETRY:-}" == "off" ]; then
 	# We delete the job as well to ensure that we do not spam the
 	# log with other messages related to the Telemetry job.
 	cat <<EOF >>${create_sql}
-SELECT alter_job(1,scheduled:=false);
+SELECT alter_job('telemetry', scheduled:=false);
 EOF
 fi
 
@@ -47,3 +47,4 @@ psql -U "${POSTGRES_USER}" template1 -f ${create_sql}
 if [ "${POSTGRES_DB:-postgres}" != 'postgres' ]; then
     psql -U "${POSTGRES_USER}" "${POSTGRES_DB}" -f ${create_sql}
 fi
+rm ${create_sql}
